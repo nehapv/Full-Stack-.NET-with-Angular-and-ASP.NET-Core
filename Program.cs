@@ -1,4 +1,5 @@
 
+using MyFirstWebAPIProject.Models;
 using MyFirstWebAPIProject.Services;
 using Scalar.AspNetCore;
 
@@ -24,6 +25,8 @@ namespace ControllerWebApi
             builder.Services.AddSwaggerGen();
             builder.Services.AddScoped<IProductService, ProductService>();
 
+            builder.Services.Configure<MyAppSettingsOptions>(
+    builder.Configuration.GetSection("MyAppSettings"));
 
             var app = builder.Build();
 
