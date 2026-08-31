@@ -1,5 +1,7 @@
 
+using MyFirstWebAPIProject.Services;
 using Scalar.AspNetCore;
+
 
 namespace ControllerWebApi
 {
@@ -20,6 +22,8 @@ namespace ControllerWebApi
             // Swagger
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddScoped<IProductService, ProductService>();
+
 
             var app = builder.Build();
 

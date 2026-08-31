@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MyFirstWebAPIProject.Models;
 using MyFirstWebAPIProject.DTOs;
+using MyFirstWebAPIProject.Services;
 
 namespace MyFirstWebAPIProject.Controllers
 {
@@ -8,117 +8,47 @@ namespace MyFirstWebAPIProject.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        // Hardcoded Categories
-        private static List<Category> _categories = new List<Category>
-        {
-            new Category { Id = 1, Name = "Electronics" },
-            new Category { Id = 2, Name = "Furniture" },
-        };
+        private readonly IProductService _productService;
 
-        // Hardcoded Products
-        private static List<Product> _products = new List<Product>
+        public ProductsController(IProductService productService)
         {
-            new Product { Id = 1, Name = "Laptop", Price = 1000.00m, CategoryId = 1 },
-            new Product { Id = 2, Name = "Desktop", Price = 2000.00m, CategoryId = 1 },
-            new Product { Id = 3, Name = "Chair", Price = 150.00m, CategoryId = 2 },
-        };
+            _productService = productService;
+        }
 
-        // GET: api/products
         [HttpGet]
         public ActionResult<IEnumerable<ProductDTO>> GetProducts()
         {
-            var productDTOs = _products.Select(p => new ProductDTO
-            {
-                Id = p.Id,
-                Name = p.Name,
-                Price = p.Price,
-                CategoryName = _categories.FirstOrDefault(c => c.Id == p.CategoryId)?.Name ?? "Unknown"
-            }).ToList();
-
-            return Ok(productDTOs);
+            return Ok(_productService.GetAllProducts());
         }
 
-        // GET: api/products/{id}
         [HttpGet("{id}")]
         public ActionResult<ProductDTO> GetProduct(int id)
         {
-            var product = _products.FirstOrDefault(p => p.Id == id);
-            if (product == null)
-            {
-                return NotFound(new { Message = $"Product with ID {id} not found." });
-            }
-
-            var productDTO = new ProductDTO
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Price = product.Price,
-                CategoryName = _categories.FirstOrDefault(c => c.Id == product.CategoryId)?.Name ?? "Unknown"
-            };
-
-            return Ok(productDTO);
+            var product = _productService.GetProductById(id);
+            if (product == null) return NotFound(new { Message = $"Product with ID {id} not found." });
+            return Ok(product);
         }
 
-        // POST: api/products
         [HttpPost]
         public ActionResult<ProductDTO> PostProduct([FromBody] ProductCreateDTO createDto)
         {
-            var newProduct = new Product
-            {
-                Id = _products.Max(p => p.Id) + 1,
-                Name = createDto.Name,
-                Price = createDto.Price,
-                CategoryId = createDto.CategoryId
-            };
-
-            _products.Add(newProduct);
-
-            var productDTO = new ProductDTO
-            {
-                Id = newProduct.Id,
-                Name = newProduct.Name,
-                Price = newProduct.Price,
-                CategoryName = _categories.FirstOrDefault(c => c.Id == newProduct.CategoryId)?.Name ?? "Unknown"
-            };
-
-            return CreatedAtAction(nameof(GetProduct), new { id = productDTO.Id }, productDTO); //201, Response Body, Location
+            var createdProduct = _productService.CreateProduct(createDto);
+            return CreatedAtAction(nameof(GetProduct), new { id = createdProduct.Id }, createdProduct);
         }
 
-        // PUT: api/products/{id}
         [HttpPut("{id}")]
         public IActionResult UpdateProduct(int id, [FromBody] ProductUpdateDTO updateDto)
         {
-            if (id != updateDto.Id)
-            {
-                return BadRequest(new { Message = "ID mismatch between route and body." });
-            }
-
-            var existingProduct = _products.FirstOrDefault(p => p.Id == id);
-            if (existingProduct == null)
-            {
-                return NotFound(new { Message = $"Product with ID {id} not found." });
-            }
-
-            // Update product
-            existingProduct.Name = updateDto.Name;
-            existingProduct.Price = updateDto.Price;
-            existingProduct.CategoryId = updateDto.CategoryId;
-
-            return NoContent();  // 204 sucess ,No Content 
+            if (id != updateDto.Id) return BadRequest(new { Message = "ID mismatch between route and body." });
+            if (!_productService.UpdateProduct(id, updateDto)) return NotFound(new { Message = $"Product with ID {id} not found." });
+            return NoContent();
         }
 
-        // DELETE: api/products/{id}
         [HttpDelete("{id}")]
         public IActionResult DeleteProduct(int id)
         {
-            var product = _products.FirstOrDefault(p => p.Id == id);
-            if (product == null)
-            {
-                return NotFound(new { Message = $"Product with ID {id} not found." });
-            }
-
-            _products.Remove(product);
-            return NoContent(); // 204 sucess ,No Content
+            if (!_productService.DeleteProduct(id)) return NotFound(new { Message = $"Product with ID {id} not found." });
+            return NoContent();
         }
     }
 }
