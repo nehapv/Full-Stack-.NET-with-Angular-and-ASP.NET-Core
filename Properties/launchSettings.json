@@ -18,6 +18,19 @@
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7044;http://localhost:5272"
     },
+    "DotNetLauncher": {
+      "commandName": "Executable",
+      "executablePath": "dotnet",
+      "commandLineArgs": "MyFirstWebAPIProject.dll --urls \"https://localhost:7191;http://localhost:5021\"",
+      "workingDirectory": "$(ProjectDir)bin\\Debug\\net8.0",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+
+
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
